@@ -1,0 +1,24 @@
+# Plant Disease Classification System - Backend Dependencies
+
+# Web Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+Werkzeug==3.0.1
+
+# Machine Learning
+tensorflow==2.20.0
+numpy==1.26.2
+Pillow==10.1.0
+
+# Image Processing
+opencv-python==4.8.1.78
+
+# Utilities
+python-dateutil==2.8.2
+
+# Production Server
+gunicorn==21.2.0
+
+# Development
+pytest==7.4.3
+pytest-cov==4.1.0

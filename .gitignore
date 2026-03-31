@@ -1,0 +1,32 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Your issue folder
+outputs/
+
+# Dataset
+backend/data/
+
+# Other important ignores
+backend/venv/
+backend/__pycache__/
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+
+# Large files
+*.zip
+*.tar
+*.pt
+*.pth
