@@ -54,7 +54,7 @@ const Footer = () => {
 
         <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
-            Made with <Heart size={14} className="text-red-500" /> by NinjaTech AI
+            Made with <Heart size={14} className="text-red-500" /> by Chitrax-zem
           </p>
           <div className="flex items-center gap-4">
             <a
