@@ -2,7 +2,7 @@
  * API service for Plant Disease Classification System
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+const API_BASE_URL = "https://plant-disease-classification-system-81dx.onrender.com";
 
 // Types
 export interface Prediction {
