@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Leaf, AlertCircle, RefreshCw, Info } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -10,7 +10,6 @@ import {
   fileToBase64,
   PredictionResponse,
   checkHealth,
-  formatDiseaseName,
   Prediction,
 } from './api/api';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Leaf, Sun, Moon, Github } from 'lucide-react';
 
 interface NavbarProps {
@@ -42,7 +41,15 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             </button>
 
             {/* GitHub Link */}
-            
+            <a
+              href="https://github.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              aria-label="View on GitHub"
+            >
+              <Github size={20} className="text-gray-600 dark:text-gray-300" />
+            </a>
           </div>
         </div>
       </div>

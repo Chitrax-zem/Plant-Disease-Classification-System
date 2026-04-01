@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -18,13 +18,12 @@ interface PredictionResultsProps {
   treatment: TreatmentInfo;
 }
 
-const PredictionResults: React.FC<PredictionResultsProps> = ({
+const PredictionResults = ({
   primaryPrediction,
   allPredictions,
   treatment,
-}) => {
-  const [showAllPredictions, setShowAllPredictions] = React.useState(false);
-  const [expandedSections, setExpandedSections] = React.useState({
+}: PredictionResultsProps) => {
+  const [expandedSections, setExpandedSections] = useState({
     description: true,
     treatment: true,
     prevention: true,
