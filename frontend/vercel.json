@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://plant-disease-api.onrender.com/api/$1"
+    }
+  ]
+}
