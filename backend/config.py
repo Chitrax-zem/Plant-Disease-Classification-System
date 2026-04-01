@@ -24,4 +24,4 @@ INPUT_SHAPE = (224, 224, 3)
 API_PREFIX = '/api'
 
 # CORS settings
-CORS_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173']
+CORS_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://vercel.com/chitransh-nigams-projects-f07e1331/plant-disease-classification-system/D57wsL2ai2zASVmMkm6vzsKjt6k1' , 'https://plant-disease-classification-system.vercel.app/'  ] 
