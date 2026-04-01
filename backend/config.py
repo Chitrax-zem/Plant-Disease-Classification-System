@@ -23,5 +23,17 @@ INPUT_SHAPE = (224, 224, 3)
 # API configuration
 API_PREFIX = '/api'
 
-# CORS settings
-CORS_ORIGINS = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'https://vercel.com/chitransh-nigams-projects-f07e1331/plant-disease-classification-system/D57wsL2ai2zASVmMkm6vzsKjt6k1' , 'https://plant-disease-classification-system.vercel.app/'  ] 
+# CORS settings - Updated for production
+CORS_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'https://plant-disease-classification-system-e6f2dngcu.vercel.app',  # Your Vercel URL
+    'https://plant-disease-classification-system-81dx.onrender.com',  # Your Render URL
+    'https://plant-disease-classification-system.vercel.app/',
+    'https://*.vercel.app',  # Allow all Vercel preview deployments
+]
+
+# Allow environment variable override for production
+if os.environ.get('CORS_ORIGINS'):
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS').split(',')

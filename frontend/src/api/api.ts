@@ -2,7 +2,13 @@
  * API service for Plant Disease Classification System
  */
 
-const API_BASE_URL = "https://plant-disease-classification-system-81dx.onrender.com";
+// Use environment variable or fallback to relative path (for development proxy)
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+// Log API URL for debugging (remove in production)
+if (typeof window !== 'undefined') {
+  console.log('API Base URL:', API_BASE_URL);
+}
 
 // Types
 export interface Prediction {
