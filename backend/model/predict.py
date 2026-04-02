@@ -32,14 +32,26 @@ class DiseasePredictor:
     
     def _load_model(self):
         """Load the trained Keras model"""
-        if os.path.exists(MODEL_PATH):
-            print(f"Loading model from {MODEL_PATH}")
-            self.model = load_model(MODEL_PATH)
-            print("Model loaded successfully")
-        else:
-            print(f"Model not found at {MODEL_PATH}")
-            print("Using placeholder mode for development")
-            self.model = None
+        # Try different model formats in order of preference
+        model_paths = [
+            MODEL_PATH,  # .keras format
+            MODEL_PATH.replace('.keras', '.h5'),  # .h5 format (better compatibility)
+        ]
+        
+        for model_path in model_paths:
+            if os.path.exists(model_path):
+                print(f"Loading model from {model_path}")
+                try:
+                    self.model = load_model(model_path)
+                    print("Model loaded successfully")
+                    return
+                except Exception as e:
+                    print(f"Error loading model from {model_path}: {e}")
+                    continue
+        
+        print(f"Model not found. Tried: {model_paths}")
+        print("Using placeholder mode for development")
+        self.model = None
     
     def _load_class_names(self):
         """Load class names from JSON file or use defaults"""
