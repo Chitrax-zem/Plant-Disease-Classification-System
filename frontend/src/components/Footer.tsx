@@ -14,7 +14,7 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              AI-powered plant disease detection using deep learning and EfficientNetB0 transfer learning.
+              AI-powered plant disease detection using deep learning and CNN transfer learning.
             </p>
           </div>
 
@@ -23,7 +23,7 @@ const Footer = () => {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Technology</h3>
             <ul className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
               <li>TensorFlow / Keras</li>
-              <li>EfficientNetB0</li>
+              <li>Convolutional Neural Network</li>
               <li>React + TypeScript</li>
               <li>Flask API</li>
             </ul>
