@@ -1,219 +1,227 @@
-Plant Disease Classification System
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/TensorFlow-2.15-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" />
+  <img src="https://img.shields.io/badge/EfficientNetB0-Transfer%20Learning-34A853?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white" />
+  <img src="https://img.shields.io/badge/React-18+-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+</p>
+
+<h1 align="center">🌿 PlantMD — Plant Disease Classification System</h1>
+
+<p align="center">
+  Upload a leaf photo. Get an instant diagnosis across 38 disease categories, 14 plant species, and actionable treatment recommendations — powered by EfficientNetB0 transfer learning.
+</p>
+
+<p align="center">
+  <strong>98.2% validation accuracy · ~200ms inference · 43,455-image PlantVillage dataset</strong>
+</p>
+
+<p align="center">
+  <a href="#-quick-start"><strong>Quick Start →</strong></a> &nbsp;·&nbsp;
+  <a href="#-model-architecture"><strong>Model →</strong></a> &nbsp;·&nbsp;
+  <a href="#-api-reference"><strong>API →</strong></a> &nbsp;·&nbsp;
+  <a href="#-training-pipeline"><strong>Training →</strong></a> &nbsp;·&nbsp;
+  <a href="DEPLOYMENT.md"><strong>Deploy →</strong></a>
+</p>
+
+---
+
+## What is Plant Disease Classification?
+
+PDC is a full-stack deep learning web app that classifies plant leaf diseases from photos. Drag and drop a leaf image and the system:
+
+1. Preprocesses it through EfficientNetB0's input pipeline
+2. Runs a forward pass through the fine-tuned classification head
+3. Returns the **top-5 predictions** with confidence scores
+4. Surfaces **treatment and prevention recommendations** for the detected disease
+
+It covers **38 disease categories** (including healthy classes) across **14 plant species**: Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper, Potato, Raspberry, Soybean, Squash, Strawberry, and Tomato.
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────┐
+│  React + TypeScript (Vite)           │
+│  Drag-and-drop upload · Recharts     │
+└─────────────────┬────────────────────┘
+                  │ HTTP/REST (multipart or base64)
+                  ▼
+┌──────────────────────────────────────┐
+│  Flask REST API                      │
+│  Gunicorn WSGI · CORS                │
+└─────────────────┬────────────────────┘
+                  │
+                  ▼
+┌──────────────────────────────────────┐
+│  Prediction Engine                   │
+│  EfficientNetB0 (ImageNet weights)   │
+│  → GlobalAveragePooling              │
+│  → Dense 256 (ReLU + L2)            │
+│  → Dense 38 (Softmax)               │
+└──────────────────────────────────────┘
+```
+
+**Request lifecycle:**
+
+1. User uploads leaf image via drag-and-drop or camera capture
+2. Backend resizes to 224×224 and applies EfficientNet `preprocess_input`
+3. Forward pass through frozen backbone + custom classification head
+4. Softmax outputs → top-5 predictions with confidence scores
+5. Disease info looked up from `disease_data.py` → treatment and prevention steps returned
 
-A full-stack deep learning web application for automated plant disease detection and classification from leaf images. The system leverages transfer learning with EfficientNetB0 architecture to classify 38 distinct plant disease categories across 14 plant species.
+---
 
-Table of Contents
+## Performance
 
-- Architecture Overview
+| Metric | Value |
+|---|---|
+| Validation Accuracy | **98.2%** |
+| Top-5 Accuracy | **99.7%** |
+| Inference Time | ~200ms |
+| API Response Time | <500ms |
+| Model Size | ~21MB |
+| Frontend Load | <2s |
 
-- Technology Stack
+Healthy classes achieve >95% precision due to distinct visual features. Fungal diseases discriminate well from characteristic lesion patterns. Viral diseases can occasionally be confused with nutrient deficiencies — a known limitation of image-only classification.
 
-- Model Architecture
+---
+
+## Tech Stack
+
+### Backend
+
+| Library | Version | Purpose |
+|---|---|---|
+| Python | 3.10+ | Runtime |
+| Flask | 3.0.0 | REST API |
+| Flask-CORS | 4.0.0 | Cross-origin requests |
+| TensorFlow / Keras | 2.15 / 3.x | Model inference |
+| NumPy | 1.24.3 | Array operations |
+| Pillow | 10.1.0 | Image loading and resizing |
+| OpenCV | 4.8.1 | Image manipulation |
+| Gunicorn | 21.2.0 | Production WSGI server |
 
-- API Documentation
+### Frontend
 
-- Installation
+| Library | Version | Purpose |
+|---|---|---|
+| React | 18.2.0 | UI |
+| TypeScript | 5.3.3 | Type safety |
+| Vite | 5.0.8 | Build tool |
+| TailwindCSS | 3.3.6 | Styling |
+| Recharts | 2.10.3 | Confidence bar charts |
+| React Dropzone | 14.2.3 | File upload |
+| Lucide React | 0.294.0 | Icons |
 
-- Training Pipeline
+### Hosting
 
-- Deployment
+| Service | Purpose |
+|---|---|
+| Render | Backend API (Flask + Gunicorn) |
+| Vercel | Frontend (Vite static build) |
+| GitHub | Source control + CI/CD |
 
-- Project Structure
+---
 
-- Performance Metrics
+## Quick Start
 
-- Supported Plant Diseases
+### Prerequisites
 
-- Future Enhancements
+- Python 3.10+ and pip
+- Node.js 18+ and npm
+- A trained model at `backend/model/saved_models/best_model.keras` *(see [Training](#-training-pipeline))*
 
-Architecture Overview
+### Backend
 
-System Architecture
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT LAYER                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  React + TypeScript Frontend (Vite)                                 │    │
-│  │  - TailwindCSS for styling                                          │    │
-│  │  - Recharts for data visualization                                  │    │
-│  │  - React Dropzone for file uploads                                  │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      │ HTTP/REST
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              API GATEWAY                                     │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  Flask REST API Server                                               │    │
-│  │  - CORS enabled for cross-origin requests                           │    │
-│  │  - Gunicorn WSGI server for production                              │    │
-│  │  - Multipart form data handling                                     │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           PREDICTION ENGINE                                  │
-│  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  TensorFlow/Keras Model                                              │    │
-│  │  - EfficientNetB0 backbone (ImageNet weights)                       │    │
-│  │  - Custom classification head                                       │    │
-│  │  - Preprocessing pipeline (EfficientNet preprocess_input)           │    │
-│  └─────────────────────────────────────────────────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────────────────┘
+# Configure environment
+cp .env.example .env            # set FLASK_ENV, PORT as needed
 
-Data Flow
+python app.py
+```
 
-- Image Acquisition: User uploads leaf image via drag-and-drop or camera capture
+API at **http://localhost:5001** · Docs at **http://localhost:5001/api/health**
 
-- Preprocessing: Image resized to 224×224 and preprocessed using EfficientNet's preprocess_input
+### Frontend
 
-- Inference: Forward pass through EfficientNetB0 model with custom classification head
+```bash
+cd frontend
+npm install
 
-- Post-processing: Softmax outputs converted to probability distribution across 38 classes
+# Point at your local backend
+echo "VITE_API_URL=http://localhost:5001/api" > .env.local
 
-- Response: Top-5 predictions with confidence scores and treatment recommendations
+npm run dev
+```
 
-Technology Stack
+App at **http://localhost:5173**
 
-Frontend
+---
 
- Technology Version Purpose
+## Model Architecture
 
- React 18.2.0 UI component library
+### EfficientNetB0 Transfer Learning
 
- TypeScript 5.3.3 Type-safe JavaScript
+Training happens in two phases to maximize accuracy while minimizing overfitting.
 
- Vite 5.0.8 Build tool and dev server
+**Phase 1 — Feature Extraction (frozen backbone)**
 
- TailwindCSS 3.3.6 Utility-first CSS framework
+The EfficientNetB0 base (pretrained on ImageNet) is frozen. Only the classification head trains.
 
- Recharts 2.10.3 Charting library for confidence visualization
+```
+Input (224, 224, 3)
+  │
+  ▼
+EfficientNetB0 base          ← frozen, ImageNet weights, output: (7, 7, 1280)
+  │
+  ▼
+GlobalAveragePooling2D       → 1280-dim feature vector
+  │
+  ▼
+BatchNormalization
+Dropout (0.3)
+Dense (256, ReLU) + L2(0.001)
+BatchNormalization
+Dropout (0.3)
+  │
+  ▼
+Dense (38, Softmax)          → 38 disease classes
+```
 
- React Dropzone 14.2.3 File upload component
+**Phase 2 — Fine-tuning (top 20 backbone layers unfrozen)**
 
- Lucide React 0.294.0 Icon library
+The top 20 layers of EfficientNetB0 are unfrozen and trained jointly with the head at a lower learning rate.
 
-Backend
+| Component | Phase 1 Trainable | Phase 2 Trainable |
+|---|---|---|
+| EfficientNetB0 base | ~4.0M (frozen) | ~0.8M (top 20 layers) |
+| Classification head | ~0.5M | ~0.5M |
+| **Total** | **~0.5M** | **~1.3M** |
 
- Technology Version Purpose
+### Training Configuration
 
- Python 3.10+ Runtime environment
+```python
+# Phase 1
+optimizer = Adam(learning_rate=0.001)
 
- Flask 3.0.0 REST API framework
+# Phase 2 (fine-tuning)
+optimizer = Adam(learning_rate=1e-5)
 
- Flask-CORS 4.0.0 Cross-origin resource sharing
-
- TensorFlow 2.15.0 Deep learning framework
-
- Keras 3.x High-level neural network API
-
- NumPy 1.24.3 Numerical computing
-
- Pillow 10.1.0 Image processing
-
- OpenCV 4.8.1 Image manipulation
-
- Gunicorn 21.2.0 WSGI HTTP server
-
-Infrastructure
-
- Service Purpose
-
- Vercel Frontend hosting and CDN
-
- Render Backend API hosting
-
- GitHub Version control and CI/CD
-
-Model Architecture
-
-EfficientNetB0 Transfer Learning
-
-The model utilizes EfficientNetB0 as a feature extractor, leveraging pretrained ImageNet weights for transfer learning. The architecture follows a two-phase training approach:
-
-Phase 1: Feature Extraction (Frozen Backbone)
-
-Input Layer (224, 224, 3)
-        │
-        ▼
-┌───────────────────────┐
-│   EfficientNetB0      │  (Frozen - ImageNet weights)
-│   Pretrained Base     │
-│   Output: (7, 7, 1280)│
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│ GlobalAveragePooling2D│  → 1280 features
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   BatchNormalization  │
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   Dropout (0.3)       │
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   Dense (256, ReLU)   │  + L2 Regularization (0.001)
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   BatchNormalization  │
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   Dropout (0.3)       │
-└───────────────────────┘
-        │
-        ▼
-┌───────────────────────┐
-│   Dense (38, Softmax) │  → 38 disease classes
-└───────────────────────┘
-
-Phase 2: Fine-Tuning (Unfrozen Top Layers)
-
-After initial training, the top 20 layers of EfficientNetB0 are unfrozen for fine-tuning with a lower learning rate (1e-5).
-
-Model Parameters
-
- Component Parameters
-
- EfficientNetB0 (Frozen) ~4.0M (non-trainable)
-
- EfficientNetB0 (Fine-tuned) ~0.8M (trainable top 20 layers)
-
- Classification Head ~0.5M (trainable)
-
- Total (Phase 1) ~0.5M trainable
-
- Total (Phase 2) ~1.3M trainable
-
-Training Configuration
-
-# Optimizer
-optimizer = Adam(learning_rate=0.001)  # Phase 1
-optimizer = Adam(learning_rate=1e-5)   # Phase 2 (fine-tuning)
-
-# Loss Function
 loss = CategoricalCrossentropy(label_smoothing=0.1)
 
-# Callbacks
 callbacks = [
     EarlyStopping(monitor='val_accuracy', patience=10, restore_best_weights=True),
     ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, min_lr=1e-7),
-    ModelCheckpoint(monitor='val_accuracy', save_best_only=True)
+    ModelCheckpoint(monitor='val_accuracy', save_best_only=True),
 ]
 
-# Data Augmentation
 augmentation = {
     'rotation_range': 30,
     'width_shift_range': 0.2,
@@ -221,93 +229,97 @@ augmentation = {
     'shear_range': 0.2,
     'zoom_range': 0.2,
     'horizontal_flip': True,
-    'vertical_flip': True
+    'vertical_flip': True,
 }
+```
 
-Preprocessing Pipeline
+### ⚠️ Preprocessing Note
 
-Critical: EfficientNet requires specific preprocessing using preprocess_input from tensorflow.keras.applications.efficientnet. Using standard normalization (rescale=1./255) will result in incorrect predictions.
+EfficientNet requires its own preprocessing function — **do not use `rescale=1./255`**. Using standard normalization will produce garbage predictions.
 
+```python
 from tensorflow.keras.applications.efficientnet import preprocess_input
 
-# Correct preprocessing for EfficientNet
-train_datagen = ImageDataGenerator(
-    preprocessing_function=preprocess_input,  # NOT rescale=1./255
-    rotation_range=30,
-    # ... other augmentations
+datagen = ImageDataGenerator(
+    preprocessing_function=preprocess_input,  # ✅ correct
+    # rescale=1./255                          # ❌ wrong — never use this with EfficientNet
 )
+```
 
-API Documentation
+This must be applied identically during training **and** inference.
 
-Base URL
+---
 
-Production: https://plant-disease-api.onrender.com/api
-Development: http://localhost:5001/api
+## Training Pipeline
 
-Endpoints
+### Dataset
 
-Root Endpoint
+The model trains on the [PlantVillage Dataset](https://github.com/spMohanty/PlantVillage-Dataset):
 
-GET /
+| Split | Images |
+|---|---|
+| Training | 34,748 |
+| Validation | 8,707 |
+| **Total** | **43,455** |
 
-Response:
+38 disease categories · 14 plant species
 
-{
-  "service": "Plant Disease Classification API",
-  "version": "1.0.0",
-  "status": "running",
-  "endpoints": {
-    "health": "/api/health",
-    "classes": "/api/classes",
-    "predict": "/api/predict",
-    "predict_base64": "/api/predict/base64",
-    "disease_info": "/api/disease/<name>",
-    "model_info": "/api/model/info"
-  }
-}
+### Running Training
 
-Health Check
+```bash
+cd backend
+python model/train_fixed.py
+```
 
-GET /api/health
+Outputs written to `backend/model/saved_models/`:
 
-Response:
+| File | Description |
+|---|---|
+| `best_model.keras` | Best checkpoint by `val_accuracy` |
+| `class_names.json` | Class index → label mapping |
+| `training_log.csv` | Per-epoch loss and accuracy |
 
+---
+
+## API Reference
+
+**Base URLs**
+
+- Production: `https://plant-disease-api.onrender.com/api`
+- Development: `http://localhost:5001/api`
+
+### Endpoints
+
+#### `GET /api/health`
+Service health check.
+```json
 {
   "status": "healthy",
   "service": "Plant Disease Classification API",
-  "timestamp": "2026-04-01T12:00:00.000000",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "timestamp": "2026-04-01T12:00:00.000000"
 }
+```
 
-Get All Disease Classes
-
-GET /api/classes
-
-Response:
-
+#### `GET /api/classes`
+Returns all 38 disease class labels.
+```json
 {
   "success": true,
   "count": 38,
-  "classes": [
-    "Apple___Apple_scab",
-    "Apple___Black_rot",
-    "Apple___Cedar_apple_rust",
-    "Apple___healthy",
-    "Blueberry___healthy",
-    "Cherry_(including_sour)___Powdery_mildew",
-    "..."
-  ]
+  "classes": ["Apple___Apple_scab", "Apple___Black_rot", "..."]
 }
+```
 
-Predict Disease from Image
+#### `POST /api/predict`
+Upload a leaf image for classification.
 
-POST /api/predict
+```
 Content-Type: multipart/form-data
+Body: image=<file>
+```
 
-image: <file>
-
-Response:
-
+```json
 {
   "success": true,
   "primary_prediction": {
@@ -316,470 +328,186 @@ Response:
     "confidence_percentage": "95.42%"
   },
   "all_predictions": [
-    {"disease": "Tomato___Late_blight", "confidence": 0.9542, "confidence_percentage": "95.42%"},
-    {"disease": "Tomato___Early_blight", "confidence": 0.0321, "confidence_percentage": "3.21%"},
-    {"disease": "Tomato___Septoria_leaf_spot", "confidence": 0.0089, "confidence_percentage": "0.89%"},
-    {"disease": "Potato___Late_blight", "confidence": 0.0032, "confidence_percentage": "0.32%"},
-    {"disease": "Tomato___healthy", "confidence": 0.0016, "confidence_percentage": "0.16%"}
+    { "disease": "Tomato___Late_blight",       "confidence": 0.9542 },
+    { "disease": "Tomato___Early_blight",      "confidence": 0.0321 },
+    { "disease": "Tomato___Septoria_leaf_spot","confidence": 0.0089 },
+    { "disease": "Potato___Late_blight",       "confidence": 0.0032 },
+    { "disease": "Tomato___healthy",           "confidence": 0.0016 }
   ],
   "treatment": {
-    "description": "Late blight is caused by the oomycete pathogen Phytophthora infestans...",
+    "description": "Late blight is caused by the oomycete Phytophthora infestans...",
     "treatment": [
-      "Apply copper-based fungicides every 7-10 days",
+      "Apply copper-based fungicides every 7–10 days",
       "Remove and destroy infected plant material",
       "Ensure proper air circulation between plants"
     ],
     "prevention": [
       "Use disease-resistant tomato varieties",
       "Avoid overhead irrigation",
-      "Rotate crops every 2-3 years"
+      "Rotate crops every 2–3 years"
     ]
   }
 }
+```
 
-Predict from Base64 Image
+#### `POST /api/predict/base64`
+Same as `/api/predict` but accepts a base64-encoded image.
 
-POST /api/predict/base64
-Content-Type: application/json
+```json
+{ "image": "data:image/jpeg;base64,/9j/4AAQ..." }
+```
 
-{
-  "image": "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
-}
+#### `GET /api/disease/{disease_name}`
+Fetch treatment info for a specific disease by its class label (e.g. `Tomato___Late_blight`).
 
-Response: Same as /api/predict
+#### `GET /api/model/info`
+Returns model metadata: input shape, number of classes, parameter count, load status.
 
-Get Disease Information
+---
 
-GET /api/disease/{disease_name}
+## Project Structure
 
-Response:
-
-{
-  "success": true,
-  "disease": "Tomato___Late_blight",
-  "info": {
-    "description": "Late blight is caused by...",
-    "treatment": [...],
-    "prevention": [...]
-  }
-}
-
-Get Model Information
-
-GET /api/model/info
-
-Response:
-
-{
-  "success": true,
-  "model_type": "EfficientNetB0 Transfer Learning",
-  "input_shape": [224, 224, 3],
-  "num_classes": 38,
-  "model_loaded": true,
-  "total_params": 5330478,
-  "classes": [...]
-}
-
-Installation
-
-Prerequisites
-
-- Python 3.10+
-
-- Node.js 18+
-
-- npm or yarn
-
-- Git
-
-Clone Repository
-
-git clone https://github.com/YOUR_USERNAME/plant-disease-classification.git
-cd plant-disease-classification
-
-Backend Setup
-
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run development server
-python app.py
-
-Frontend Setup
-
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Build for production
-npm run build
-
-Environment Variables
-
-Backend (backend/.env):
-
-FLASK_ENV=production
-TF_CPP_MIN_LOG_LEVEL=2
-PORT=5001
-
-Frontend (frontend/.env.production):
-
-VITE_API_URL=https://your-api-url.onrender.com/api
-
-Training Pipeline
-
-Dataset
-
-The model is trained on the PlantVillage Dataset containing:
-
- Split Images
-
- Training 34,748
-
- Validation 8,707
-
- Total 43,455
-
-Classes: 38 disease categories across 14 plant species
-
-Plants: Apple, Blueberry, Cherry, Corn, Grape, Orange, Peach, Pepper, Potato, Raspberry, Soybean, Squash, Strawberry, Tomato
-
-Training Script
-
-# Navigate to backend
-cd backend
-
-# Run training script
-python model/train_fixed.py
-
-Training Output
-
-Epoch 1/25
-1086/1086 [======] - 120s 105ms/step - loss: 2.1234 - accuracy: 0.4521 - val_loss: 1.2345 - val_accuracy: 0.6789
-Epoch 2/25
-1086/1086 [======] - 115s 102ms/step - loss: 1.0123 - accuracy: 0.7654 - val_loss: 0.8765 - val_accuracy: 0.8123
-...
-
-Model Checkpoints
-
-- Best model saved to: backend/model/saved_models/best_model.keras
-
-- Class names saved to: backend/model/saved_models/class_names.json
-
-- Training log: backend/model/saved_models/training_log.csv
-
-Deployment
-
-Deploy to Render (Backend)
-
-- Connect GitHub repository to Render
-
-- Create new Web Service
-
-- Configure:
-
-- Root Directory: backend
-
-- Build Command: pip install -r requirements.txt
-
-- Start Command: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120
-
-- Set environment variables:
-
-- FLASK_ENV=production
-
-- TF_CPP_MIN_LOG_LEVEL=2
-
-- Upload trained model to model/saved_models/
-
-- Deploy
-
-Deploy to Vercel (Frontend)
-
-- Connect GitHub repository to Vercel
-
-- Configure:
-
-- Root Directory: frontend
-
-- Framework Preset: Vite
-
-- Set environment variables:
-
-- VITE_API_URL=https://your-api-url.onrender.com/api
-
-- Deploy
-
-See DEPLOYMENT.md for detailed instructions.
-
-Project Structure
-
+```
 plant-disease-classification/
 ├── backend/
-│   ├── app.py                    # Flask application entry point
-│   ├── config.py                 # Configuration settings
-│   ├── requirements.txt          # Python dependencies
-│   ├── gunicorn_config.py        # Gunicorn WSGI configuration
-│   ├── render.yaml               # Render deployment blueprint
-│   ├── uploads/                  # Uploaded images directory
+│   ├── app.py                         # Flask entry point
+│   ├── config.py                      # Configuration
+│   ├── gunicorn_config.py             # Production WSGI config
+│   ├── render.yaml                    # Render deployment blueprint
+│   ├── requirements.txt
+│   ├── uploads/                       # Uploaded images (temp)
 │   └── model/
-│       ├── predict.py            # Prediction module
-│       ├── disease_data.py       # Disease information database
-│       ├── train_fixed.py        # Training script
+│       ├── predict.py                 # Inference module
+│       ├── disease_data.py            # Treatment & prevention database
+│       ├── train_fixed.py             # Training script
 │       └── saved_models/
-│           ├── best_model.keras  # Trained model
-│           └── class_names.json  # Class names mapping
+│           ├── best_model.keras       # Trained model
+│           └── class_names.json       # Class index mapping
 │
-├── frontend/
-│   ├── package.json              # Node.js dependencies
-│   ├── vite.config.ts            # Vite configuration
-│   ├── tailwind.config.js        # TailwindCSS configuration
-│   ├── tsconfig.json             # TypeScript configuration
-│   ├── vercel.json               # Vercel deployment config
-│   ├── index.html                # HTML entry point
-│   └── src/
-│       ├── main.tsx              # React entry point
-│       ├── App.tsx               # Main application component
-│       ├── api/
-│       │   └── api.ts            # API service layer
-│       └── components/
-│           ├── ImageUpload.tsx   # File upload component
-│           ├── PredictionResults.tsx  # Results display
-│           ├── ConfidenceChart.tsx    # Chart visualization
-│           ├── PredictionHistory.tsx  # History sidebar
-│           ├── Navbar.tsx        # Navigation bar
-│           └── Footer.tsx        # Footer component
-│
-├── README.md                     # Project documentation
-├── DEPLOYMENT.md                 # Deployment guide
-└── .gitignore                    # Git ignore rules
+└── frontend/
+    ├── vite.config.ts
+    ├── tailwind.config.js
+    ├── tsconfig.json
+    ├── vercel.json
+    └── src/
+        ├── App.tsx
+        ├── api/api.ts                 # API service layer
+        └── components/
+            ├── ImageUpload.tsx        # Drag-and-drop upload
+            ├── PredictionResults.tsx  # Results + treatment display
+            ├── ConfidenceChart.tsx    # Top-5 bar chart
+            ├── PredictionHistory.tsx  # Session history sidebar
+            ├── Navbar.tsx
+            └── Footer.tsx
+```
+
+---
+
+## Supported Diseases (38 classes)
 
-Performance Metrics
+| Plant | Diseases |
+|---|---|
+| **Apple** | Apple Scab, Black Rot, Cedar Apple Rust, Healthy |
+| **Blueberry** | Healthy |
+| **Cherry** | Powdery Mildew, Healthy |
+| **Corn** | Cercospora Leaf Spot, Common Rust, Northern Leaf Blight, Healthy |
+| **Grape** | Black Rot, Esca (Black Measles), Leaf Blight, Healthy |
+| **Orange** | Huanglongbing (Citrus Greening) |
+| **Peach** | Bacterial Spot, Healthy |
+| **Pepper** | Bacterial Spot, Healthy |
+| **Potato** | Early Blight, Late Blight, Healthy |
+| **Raspberry** | Healthy |
+| **Soybean** | Healthy |
+| **Squash** | Powdery Mildew |
+| **Strawberry** | Leaf Scorch, Healthy |
+| **Tomato** | Bacterial Spot, Early Blight, Late Blight, Leaf Mold, Septoria Leaf Spot, Spider Mites, Target Spot, Mosaic Virus, Yellow Leaf Curl Virus, Healthy |
 
-Model Performance
+---
 
- Metric Value
+## Deployment
 
- Validation Accuracy 98.2%
+### Backend → Render
 
- Top-5 Accuracy 99.7%
+1. Connect your GitHub repo to Render and create a **Web Service**
+2. Set **Root Directory** to `backend`
+3. **Build command**: `pip install -r requirements.txt`
+4. **Start command**: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120`
+5. Add environment variables: `FLASK_ENV=production`, `TF_CPP_MIN_LOG_LEVEL=2`
+6. Upload `model/saved_models/best_model.keras` before deploying
 
- Inference Time ~200ms
+### Frontend → Vercel
 
- Model Size ~21MB
+1. Connect your GitHub repo to Vercel
+2. Set **Root Directory** to `frontend`, **Framework** to Vite
+3. Add environment variable: `VITE_API_URL=https://your-api-url.onrender.com/api`
+4. Deploy
 
-Per-Class Performance
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions and environment-specific gotchas.
 
-- Healthy classes: High precision (>95%) due to distinct visual features
+---
 
-- Fungal diseases: Good discrimination due to characteristic lesions
+## Troubleshooting
 
-- Viral diseases: Moderate confusion with nutrient deficiencies
+**Low or nonsensical prediction confidence**
+Almost always a preprocessing mismatch. Confirm that `preprocess_input` from `tensorflow.keras.applications.efficientnet` is used in both `train_fixed.py` and `predict.py` — not `rescale=1./255`.
 
-System Performance
+**404 errors on Render**
+Render assigns a dynamic port via `$PORT`. Make sure `app.py` uses `os.environ.get('PORT', 5001)` rather than a hardcoded port.
 
- Metric Value
+**CORS errors in the browser**
+Your Vercel deployment domain needs to be in `CORS_ORIGINS` in `backend/config.py`. Add it and redeploy.
 
- API Response Time <500ms
+**TypeScript build fails on Vercel**
+Usually caused by unused imports in strict mode. Either remove the imports or set `"noUnusedLocals": false` in `tsconfig.json`.
 
- Frontend Load Time <2s
+---
 
- Image Upload Limit 16MB
+## Roadmap
 
-Supported Plant Diseases
+**Near-term**
+- [ ] Batch prediction (multiple images in one request)
+- [ ] Confidence threshold filtering (suppress low-confidence results)
+- [ ] Multilingual treatment recommendations
 
-Apple
+**Medium-term**
+- [ ] TFLite export for offline / mobile inference
+- [ ] Real-time camera prediction
+- [ ] React Native mobile app
+- [ ] User accounts and scan history persistence
 
-- Apple Scab
+**Long-term**
+- [ ] Object detection for multi-leaf images
+- [ ] Disease severity assessment
+- [ ] More plant species and disease classes
+- [ ] Agricultural IoT integration
+- [ ] SIEM / reporting integrations
 
-- Black Rot
+---
 
-- Cedar Apple Rust
+## Contributing
 
-- Healthy
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit: `git commit -m 'feat: describe your change'`
+4. Push: `git push origin feature/your-feature`
+5. Open a Pull Request
 
-Blueberry
+---
 
-- Healthy
+## Acknowledgements
 
-Cherry
+- **PlantVillage Dataset** — Hughes et al., *"An open access repository of images on plant health to enable the development of mobile disease diagnostics"*
+- **EfficientNet** — Tan & Le, *"EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks"* (ICML 2019)
+- TensorFlow / Keras team for the deep learning framework
 
-- Powdery Mildew
+---
 
-- Healthy
+## License
 
-Corn
+MIT — see [LICENSE](LICENSE) for details.
 
-- Cercospora Leaf Spot (Gray Leaf Spot)
+---
 
-- Common Rust
-
-- Northern Leaf Blight
-
-- Healthy
-
-Grape
-
-- Black Rot
-
-- Esca (Black Measles)
-
-- Leaf Blight (Isariopsis Leaf Spot)
-
-- Healthy
-
-Orange
-
-- Huanglongbing (Citrus Greening)
-
-Peach
-
-- Bacterial Spot
-
-- Healthy
-
-Pepper
-
-- Bacterial Spot
-
-- Healthy
-
-Potato
-
-- Early Blight
-
-- Late Blight
-
-- Healthy
-
-Raspberry
-
-- Healthy
-
-Soybean
-
-- Healthy
-
-Squash
-
-- Powdery Mildew
-
-Strawberry
-
-- Leaf Scorch
-
-- Healthy
-
-Tomato
-
-- Bacterial Spot
-
-- Early Blight
-
-- Late Blight
-
-- Leaf Mold
-
-- Septoria Leaf Spot
-
-- Spider Mites (Two-spotted)
-
-- Target Spot
-
-- Tomato Mosaic Virus
-
-- Tomato Yellow Leaf Curl Virus
-
-- Healthy
-
-Future Enhancements
-
-Short-term
-
--  Add batch prediction support
-
--  Implement prediction confidence thresholding
-
--  Add multilingual support for treatment recommendations
-
--  Implement model versioning and A/B testing
-
-Medium-term
-
--  Mobile application (React Native)
-
--  Real-time camera prediction
-
--  Offline model support (TFLite)
-
--  User authentication and prediction history
-
-Long-term
-
--  Expand dataset with more plant species
-
--  Implement object detection for multiple leaves
-
--  Add severity assessment model
-
--  Integrate with agricultural IoT systems
-
-Troubleshooting
-
-Common Issues
-
-Low Prediction Confidence
-
-Cause: Preprocessing mismatch between training and inference Solution: Ensure preprocess_input from EfficientNet is used in both training and prediction
-
-404 Errors on Render
-
-Cause: Port not using environment variable Solution: Use os.environ.get('PORT', 5001) in app.py
-
-TypeScript Build Errors
-
-Cause: Unused imports in strict mode Solution: Remove unused imports or disable noUnusedLocals in tsconfig.json
-
-CORS Errors
-
-Cause: Frontend domain not in CORS whitelist Solution: Add your Vercel domain to CORS_ORIGINS in backend/config.py
-
-Contributing
-
-- Fork the repository
-
-- Create a feature branch (git checkout -b feature/amazing-feature)
-
-- Commit changes (git commit -m 'Add amazing feature')
-
-- Push to branch (git push origin feature/amazing-feature)
-
-- Open a Pull Request
-
-License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-Acknowledgments
-
-- PlantVillage Dataset: Hughes et al., "An open access repository of images on plant health to enable the development of mobile disease diagnostics"
-
-- EfficientNet: Tan & Le, "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks"
-
-- TensorFlow Team: For the excellent deep learning framework
-
-Contact
-
-For questions or support, please open an issue on GitHub or contact the development team.
+<p align="center">
+  Built with Flask · TensorFlow · EfficientNetB0 · React
+</p>
